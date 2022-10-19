@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.animation as animation
 #%%
 img1 = imageio.imread('chest-220.dcm')
-imageio.volread(uri, kwargs)
+
 
 
 #%%
