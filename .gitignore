@@ -27,6 +27,8 @@ share/python-wheels/
 MANIFEST
 data/
 .DS_store
+SCD2001*/ 
+# Ignore image folders
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
