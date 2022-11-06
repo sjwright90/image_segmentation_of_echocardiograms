@@ -5,85 +5,76 @@ Created on Sun Jul 31 20:26:54 2022
 
 @author: Samsonite
 """
+# %%
+
+# Import necessary packages
 import imageio
 import matplotlib.pyplot as plt
 import os
 import scipy.ndimage as ndi
 import numpy as np
 import matplotlib.animation as animation
+from zipfile import ZipFile
+from io import BytesIO
+from urllib.request import urlopen
 #%%
-img1 = imageio.imread('chest-220.dcm')
+# Pull directly from the link
+url = "https://assets.datacamp.com/production/repositories/2085/datasets/fabaa1f1675549d624eb8f5d1bc94e0b11e30a8e/sunnybrook-cardiac-mr.zip"
 
+resp = urlopen(url) # open the zipped url
 
+myzip = ZipFile(BytesIO(resp.read())) # get zipped file
 
+# Extract "SCD2001_000" folder from the zipped repository
+# Other options are 001-010
+for file in myzip.namelist():
+    if file.startswith("SCD2001_000/"):
+        myzip.extract(file, ".")
+resp.close()
 #%%
-
-fig, ax = plt.subplots(3,3)
-ax[0].imshow(img1)
-plt.show()
-
-
-#%%
-x = np.linspace(0, 2 * np.pi, 400)
-y = np.sin(x ** 2)
-
-#%%
-fig, ax = plt.subplots(1,3)
-ax[0].plot(x,y)
-ax[1].scatter(y,x)
-ax[2].imshow(img1)
-
-#%%
-vol = imageio.volread('tcia-chest-ct-sample')
-#%%
-fig, ax = plt.subplots(nrows = 1, ncols = vol.shape[0])
-for im in range(len(ax)):
-    ax[im].imshow(vol[im], cmap = 'gray')
-for axes in ax:
-    axes.axis('off')
-plt.show()
-#%%
-fig, ax = plt.subplots(nrows = vol.shape[1], ncols = 1)
-d0, d1,d2 = vol.meta['sampling']
-asp = d0/d2
-for im in range(len(ax)):
-    ax[im].imshow(vol[:,im, :], cmap = 'gray', aspect = asp)
-for axes in ax:
-    axes.axis('off')
-plt.show()
-#%%
-
-#%%
-vol_full = imageio.volread('SCD2001_010')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#%%
+# Simple plotting function for grayscale image
 def plot_image(putin):
     plt.imshow(putin, cmap = 'gray')
     plt.axis('off')
     plt.show()
-
-
+# %%
+# Print directory contents of SCD2001_000
+contents = sorted(os.listdir("SCD2001_000"))
+print(contents)
+# %%
+# Open first dcm file
+heart_vol = imageio.volread(f'SCD2001_000/{contents[0]}')
 #%%
-heart_vol = imageio.volread('SCD2001_000')
-#%%
-def load_brighten_makegif(folder = ''):
-    heart_vol = imageio.volread(folder)
-    heart_vol_g = ndi.median_filter(heart_vol, size = 3)
+def load_brighten_makegif(dcmfile = '', dirtosave = None):
+    '''Load dicom file, bighted, make gif, and save output gif
     
+    Parameters
+    ----------
+    dcmfile: string
+        path to DICOM file to process
+    dirtosave: string
+        Default None, default will save file in same directory
+        as dcmfile with same file name but in .gif format. Input specific
+        file path and file name to save .gif file in that location.
+        e.g. dirttosave = "~/Documents/images/filename.gif
+    
+    Returns
+    -------
+    heart_vol: imageio.core.util.Array
+        ImageIO object of raw data file
+    heart_vol_g: numpy.ndarray
+        Original image with median filter applied, will no longer
+        contain DICOM metadata
+    heart_cont: numpy.ndarray
+        Filtered image with contrast brightening applied, will no
+        longer contain DICOM metadata
+    Prints gif output to console'''
+
+
+
+    heart_vol = imageio.volread(dcmfile)
+    heart_vol_g = ndi.median_filter(heart_vol, size = 3)
+
     heart_contr = np.empty((heart_vol_g.shape[0], 
                             heart_vol_g.shape[1], 
                             heart_vol_g.shape[2]))
@@ -96,24 +87,30 @@ def load_brighten_makegif(folder = ''):
                                    bins = maxval-minval + 1)
         cdf = heart_hist.cumsum()/heart_hist.sum()
         heart_contr[i] = cdf[heart_vol_g[i]] * 255
-    
-    
+
+
     ims = []
     fig, ax = plt.subplots()
     for im in range(heart_vol_g.shape[0]):
         ax.axis('off')
         h = ax.imshow(heart_vol_g[im], cmap = 'gray', animated = True)
         ims.append([h])
-    
+
     ani = animation.ArtistAnimation(fig, ims, interval = 50, 
                                     blit = True, 
                                     repeat_delay = 1000)
-    title = folder + '.gif'
+    if isinstance(dirtosave, str):
+        if dirtosave.endswith(".gif"):
+            title = dirtosave
+        else:
+            title = dirtosave + ".gif"
+    else:
+        title = dcmfile + '.gif'
+
     ani.save(title)
+
     return heart_vol, heart_vol_g, heart_contr
-#%%
-scd2001_001_vol, scd2001_001_vol_g, scd2001_001_contr = load_brighten_makegif(folder = 'SCD2001_001')
-#%%
+# %%
 
 def mask_label(three_D_img, thresh = 0):
     '''input is three dimensional timeseries, where each slice is a 2d image
