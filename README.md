@@ -14,6 +14,6 @@ Examples of output plots for one of the time series images is shown below:
 <p align="center">
  <img src="/overlaygif_05.gif" height="300" width="460"/>
     <br>
-    <em>Figure 2: Gif of label overlay on heart image</em>
+    <em>Figure 2: Gif of label overlay on heart image highlighting regions within the heart</em>
 </p>
 
