@@ -8,12 +8,13 @@ Examples of output plots for one of the time series images is shown below:
 <p align="center">
  <img src="/DCM2001_005.gif" height="300" width="460"/>
     <br>
-    <em>Figure 1: Gif of contrast highlighted heart image</em>
+    <em>Figure 1: High contrast gif of echocardiogram</em>
 </p>
 
 <p align="center">
  <img src="/overlaygif_05.gif" height="300" width="460"/>
     <br>
-    <em>Figure 2: Gif of label overlay on heart image highlighting regions within the heart</em>
+    <em>Figure 2: Segment overlay gif of echocardiogram highlighting regions within the heart</em>
+    <em><br>The left ventircal is the light blue region near the middle</em>
 </p>
 
